@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValueLookup id="prtg.customlookups.gvb-sensor.timeout" desiredValue="0" undefinedState="Error">
+<lookups>
+   <SingleInt state="OK" value="0">
+        Normal
+   </SingleInt>
+   <SingleInt state="Error" value="1">
+        Error
+    </SingleInt>
+</lookups>
+</ValueLookup>
