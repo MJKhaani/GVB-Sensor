@@ -126,6 +126,7 @@ func main() {
 	var password string
 	var port string
 	var path string
+	var channelNames string
 
 	flag.StringVar(&name, "name", "node-name", "Node name. Default is node-name.")
 	flag.StringVar(&hostname, "hostname", "", "Hostname. Required.")
@@ -133,6 +134,9 @@ func main() {
 	flag.StringVar(&password, "pass", "", "Password. Required.")
 	flag.StringVar(&port, "port", "22", "SSH Port. Default is 22.")
 	flag.StringVar(&path, "path", "/var/rec", "Device Index. Default is /var/rec.")
+	flag.StringVar(&channelNames, "chan", "itn,azadi,voa,pars,bbc,one", "Channels Names Camma seperate. Default is itn,azadi,voa,pars,bbc,one")
+
+	channels := strings.Split(channelNames, ",")
 
 	flag.Parse()
 
@@ -185,11 +189,27 @@ func main() {
 		log.Fatal(err)
 	}
 
+	for index := range channels {
+		exist := false
+		for channel, _ := range channelMap {
+			if channels[index] == channel {
+				exist = true
+			}
+		}
+		if !exist {
+			channelMap[channels[index]] = &ChannelCategory{
+				Name:    channels[index],
+				Records: make(map[string]int),
+			}
+		}
+	}
 	//displayResults(channelMap)
 
 	channelResult := make(map[string]int)
 	channelTodayResult := make(map[string]int)
 	for channel, data := range channelMap {
+		channelTodayResult[channel] = 0
+		channelResult[channel] = 0
 		for date, count := range data.Records {
 			if compareDates(date, time.Now()) {
 				channelTodayResult[channel] = count
