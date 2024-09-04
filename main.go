@@ -5,6 +5,7 @@ import (
 	"encoding/xml"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"strings"
 	"time"
@@ -123,7 +124,7 @@ func main() {
 	var name string
 	var hostname string
 	var username string
-	var password string
+	var key string
 	var port string
 	var path string
 	var channelNames string
@@ -131,7 +132,7 @@ func main() {
 	flag.StringVar(&name, "name", "node-name", "Node name. Default is node-name.")
 	flag.StringVar(&hostname, "hostname", "", "Hostname. Required.")
 	flag.StringVar(&username, "user", "root", "Username. Default is root.")
-	flag.StringVar(&password, "pass", "", "Password. Required.")
+	flag.StringVar(&key, "key", "", "SSH Private Key. Required.")
 	flag.StringVar(&port, "port", "22", "SSH Port. Default is 22.")
 	flag.StringVar(&path, "path", "/var/rec", "Device Index. Default is /var/rec.")
 	flag.StringVar(&channelNames, "chan", "itn,azadi,voa,pars,bbc,one", "Channels Names Camma seperate. Default is itn,azadi,voa,pars,bbc,one")
@@ -140,15 +141,23 @@ func main() {
 
 	flag.Parse()
 
-	if hostname == "" || password == "" {
+	if hostname == "" || key == "" {
 		log.Fatal("Please supply required arguments.")
 	}
 
+	keyBytes, err := ioutil.ReadFile(key)
+	if err != nil {
+		log.Fatalf("Unable to read private key: %v", err)
+	}
+	signer, err := ssh.ParsePrivateKey(keyBytes)
+	if err != nil {
+		return
+	}
 	// SSH connection configuration
 	sshConfig := &ssh.ClientConfig{
 		User: username,
 		Auth: []ssh.AuthMethod{
-			ssh.Password(password),
+			ssh.PublicKeys(signer),
 		},
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 	}
